@@ -1,0 +1,13 @@
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\Release\NDde.xml
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\Release\NDde.dll
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\Release\NDde.pdb
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\obj\Release\NDde.Properties.Resources.resources
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\obj\Release\NDde.csproj.GenerateResource.Cache
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\obj\Release\NDde.dll
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\obj\Release\NDde.pdb
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\obj\Release\NDde.csprojResolveAssemblyReference.cache
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\Release\NDde.dll.CodeAnalysisLog.xml
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\Release\NDde.dll.lastcodeanalysissucceeded
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\Release\HotDogWater_Extensions.dll
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\Release\HotDogWater_Extensions.pdb
+C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\Release\HotDogWater_Extensions.xml
