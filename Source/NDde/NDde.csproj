@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D77772F9-3D3D-40BA-B95F-05C45878078F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NDde</RootNamespace>
+    <AssemblyName>NDde</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\NDde.xml</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\NDde.xml</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ASSIST_Extensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>S:\ARSC Scripting Backup\ASSIST DEVELOPEMENT TRANSFER\Libraries\ASSIST_Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Internal\Advanced\Monitor\DdemlActivityEventArgs.cs" />
+    <Compile Include="Internal\Advanced\Monitor\DdemlMessageActivityEventArgs.cs" />
+    <Compile Include="Internal\Advanced\Monitor\DdemlLinkActivityEventArgs.cs" />
+    <Compile Include="Internal\DdemlEventArgs.cs" />
+    <Compile Include="Internal\Advanced\Monitor\DdemlStringActivityEventArgs.cs" />
+    <Compile Include="Internal\Advanced\Monitor\DdemlErrorActivityEventArgs.cs" />
+    <Compile Include="Internal\Advanced\Monitor\DdemlConversationActivityEventArgs.cs" />
+    <Compile Include="Internal\Advanced\Monitor\DdemlCallbackActivityEventArgs.cs" />
+    <Compile Include="Internal\Server\DdemlConversation.cs" />
+    <Compile Include="Public\Advanced\DdeMessageLoop.cs">
+    </Compile>
+    <Compile Include="Public\Advanced\DdeTransaction.cs" />
+    <Compile Include="Public\Advanced\IDdeTransactionFilter.cs" />
+    <Compile Include="Public\Advanced\Monitor\DdeCallbackActivityEventArgs.cs" />
+    <Compile Include="Public\Advanced\Monitor\DdeConversationActivityEventArgs.cs" />
+    <Compile Include="Public\Advanced\Monitor\DdeErrorActivityEventArgs.cs" />
+    <Compile Include="Public\Advanced\Monitor\DdeLinkActivityEventArgs.cs" />
+    <Compile Include="Public\Advanced\Monitor\DdeMessageActivityEventArgs.cs" />
+    <Compile Include="Public\Advanced\Monitor\DdeActivityEventArgs.cs" />
+    <Compile Include="Public\Advanced\Monitor\DdeMonitor.cs" />
+    <None Include="Public\Advanced\Monitor\DdeStringActivityEventArgs.cs" />
+    <Compile Include="Public\Client\DdeClient.cs" />
+    <Compile Include="Public\Advanced\DdeContext.cs">
+    </Compile>
+    <Compile Include="Public\DdeEventArgs.cs" />
+    <Compile Include="Public\Server\DdeConversation.cs" />
+    <Compile Include="Public\DdeException.cs" />
+    <Compile Include="Public\Client\DdeAdviseEventArgs.cs" />
+    <Compile Include="Public\Client\DdeDisconnectedEventArgs.cs" />
+    <Compile Include="Internal\Advanced\IDdemlTransactionFilter.cs" />
+    <Compile Include="Internal\Advanced\DdemlTransaction.cs" />
+    <Compile Include="Public\Advanced\DdeRegistrationEventArgs.cs" />
+    <Compile Include="Internal\Advanced\DdemlRegistrationEventArgs.cs" />
+    <Compile Include="Internal\Client\DdemlDisconnectedEventArgs.cs" />
+    <Compile Include="Internal\Ddeml.cs" />
+    <Compile Include="Internal\Client\DdemlAdviseEventArgs.cs" />
+    <Compile Include="Internal\Client\DdemlClient.cs" />
+    <Compile Include="Internal\Advanced\DdemlContext.cs" />
+    <Compile Include="Internal\DdemlException.cs" />
+    <Compile Include="Internal\Advanced\Monitor\DdemlMonitor.cs" />
+    <Compile Include="Internal\Server\DdemlServer.cs" />
+    <Compile Include="Public\Server\DdeServer.cs" />
+    <Compile Include="Documentation\NamespaceDoc.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Internal\Utility\WeakReferenceDictionary.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Documentation\Examples.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Target Name="AfterBuild">
+    <MakeDir Directories="$(SolutionDir)..\Binary" />
+    <Delete Files="$(SolutionDir)..\Binary\$(ProjectName).dll" />
+    <Delete Files="$(SolutionDir)..\Binary\$(ProjectName).xml" />
+    <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFiles="$(SolutionDir)..\Binary\$(ProjectName).dll" ContinueOnError="true" />
+    <Copy SourceFiles="$(TargetDir)$(ProjectName).xml" DestinationFiles="$(SolutionDir)..\Binary\$(ProjectName).xml" ContinueOnError="true" />
+  </Target>
+</Project>
