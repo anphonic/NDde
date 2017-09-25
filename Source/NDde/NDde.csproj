@@ -41,6 +41,12 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>NDdeSSC-FortSmith-Dev-Key.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ASSIST_Extensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -72,6 +78,7 @@
     <Compile Include="Public\Advanced\Monitor\DdeMessageActivityEventArgs.cs" />
     <Compile Include="Public\Advanced\Monitor\DdeActivityEventArgs.cs" />
     <Compile Include="Public\Advanced\Monitor\DdeMonitor.cs" />
+    <None Include="NDdeSSC-FortSmith-Dev-Key.pfx" />
     <None Include="Public\Advanced\Monitor\DdeStringActivityEventArgs.cs" />
     <Compile Include="Public\Client\DdeClient.cs" />
     <Compile Include="Public\Advanced\DdeContext.cs">
