@@ -35,12 +35,15 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using ASSIST_Extensions;
 using NDde.Foundation;
 using NDde.Foundation.Advanced;
+using ThreadState = System.Threading.ThreadState;
 
 namespace NDde.Advanced
     {
@@ -86,7 +89,8 @@ namespace NDde.Advanced
         /// <include file='Documentation/Examples.xml' path='Comment/Member[@name="DdeContext"]/*' />
         public sealed class DdeContext : IDisposable, ISynchronizeInvoke
             {
-                private static DdeContext _Instance;
+        internal static EventLog EventLogWriter = CreateEventsLogger.CreaterEventLogger("NDDE Events", "NdDeEventsLog");
+        private static DdeContext _Instance;
                 private static readonly object _InstanceLock = new object();
 
                 private static readonly WeakReferenceDictionary<ISynchronizeInvoke, DdeContext> _Instances =
@@ -717,7 +721,9 @@ namespace NDde.Advanced
                                     }
                                 catch (InvalidOperationException e)
                                     {
-                                        if (!_Form.IsHandleCreated)
+                                        EventLogWriter.WriteEntry($"BeginInvoke 724 :Method: {method} Args[0]: {args[0]} - {e.Message} : {e.StackTrace}",
+                                            EventLogEntryType.Error);
+                    if (!_Form.IsHandleCreated)
                                             throw new ObjectDisposedException(GetType().ToString(), e);
                                         throw;
                                     }
