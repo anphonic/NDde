@@ -11,3 +11,16 @@ C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\R
 C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\Release\HotDogWater_Extensions.dll
 C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\Release\HotDogWater_Extensions.pdb
 C:\Users\CoolDude99\Documents\Visual Studio 2015\Projects\NDde\Source\NDde\bin\Release\HotDogWater_Extensions.xml
+H:\Projects\C#\NDDERepo\Source\NDde\bin\Release\NDde.xml
+H:\Projects\C#\NDDERepo\Source\NDde\bin\Release\NDde.dll
+H:\Projects\C#\NDDERepo\Source\NDde\bin\Release\NDde.pdb
+H:\Projects\C#\NDDERepo\Source\NDde\bin\Release\NDde.dll.CodeAnalysisLog.xml
+H:\Projects\C#\NDDERepo\Source\NDde\bin\Release\NDde.dll.lastcodeanalysissucceeded
+H:\Projects\C#\NDDERepo\Source\NDde\bin\Release\HotDogWater_Extensions.dll
+H:\Projects\C#\NDDERepo\Source\NDde\bin\Release\HotDogWater_Extensions.pdb
+H:\Projects\C#\NDDERepo\Source\NDde\bin\Release\HotDogWater_Extensions.xml
+H:\Projects\C#\NDDERepo\Source\NDde\obj\Release\NDde.Properties.Resources.resources
+H:\Projects\C#\NDDERepo\Source\NDde\obj\Release\NDde.csproj.GenerateResource.Cache
+H:\Projects\C#\NDDERepo\Source\NDde\obj\Release\NDde.dll
+H:\Projects\C#\NDDERepo\Source\NDde\obj\Release\NDde.pdb
+H:\Projects\C#\NDDERepo\Source\NDde\obj\Release\NDde.csprojResolveAssemblyReference.cache

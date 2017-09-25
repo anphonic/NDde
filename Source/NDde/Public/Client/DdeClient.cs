@@ -44,1755 +44,1756 @@ using NDde.Foundation.Client;
 
 namespace NDde.Client
     {
-        /// <summary>
-        ///     This represents the client side of a DDE conversation.
-        /// </summary>
-        /// <threadsafety static="true" instance="true" />
-        /// <remarks>
-        ///     <para>
-        ///         DDE conversations are established by specifying a service name and topic name pair.  The service name is
-        ///         usually the name of the application
-        ///         acting as a DDE server.  A DDE server can respond to multiple service names, but most servers usually only
-        ///         respond to one.  The topic name
-        ///         is a logical context for data and is defined by the server application.  A server can and usually does support
-        ///         many topic names.
-        ///     </para>
-        ///     <para>
-        ///         After a conversation has been established by calling <c>Connect</c> an application can read and write data
-        ///         using the <c>Request</c> and
-        ///         <c>Poke</c> methods respectively by specifying an item name supported by the active conversation.  An item name
-        ///         identifies a unit of data.
-        ///         An application can also be notified of changes by initiating an advise loop on an item name using the
-        ///         <c>StartAdvise</c> method.  Advise
-        ///         loops can either be warm or hot.  A hot advise loop returns the data associated with an item name when it
-        ///         changes whereas a warm advise loop
-        ///         only notifies the application without sending any data.  Commands can be sent to the server using the
-        ///         <c>Execute</c> method.
-        ///     </para>
-        ///     <para>
-        ///         Callbacks and events are invoked on the thread hosting the <c>DdeContext</c>.  All operations must be marshaled
-        ///         onto the thread hosting the
-        ///         <c>DdeContext</c> associated with this object.  Method calls will block until that thread becomes available.
-        ///         An exception will be generated
-        ///         if the thread does not become available in a timely manner.
-        ///     </para>
-        /// </remarks>
-        /// <include file='Documentation/Examples.xml' path='Comment/Member[@name="DdeClient"]/*' />
-        public class DdeClient : IDisposable
-            {
-                internal static EventLog EventLogWriter =
+    /// <summary>
+    ///     This represents the client side of a DDE conversation.
+    /// </summary>
+    /// <threadsafety static="true" instance="true" />
+    /// <remarks>
+    ///     <para>
+    ///         DDE conversations are established by specifying a service name and topic name pair.  The service name is
+    ///         usually the name of the application
+    ///         acting as a DDE server.  A DDE server can respond to multiple service names, but most servers usually only
+    ///         respond to one.  The topic name
+    ///         is a logical context for data and is defined by the server application.  A server can and usually does support
+    ///         many topic names.
+    ///     </para>
+    ///     <para>
+    ///         After a conversation has been established by calling <c>Connect</c> an application can read and write data
+    ///         using the <c>Request</c> and
+    ///         <c>Poke</c> methods respectively by specifying an item name supported by the active conversation.  An item name
+    ///         identifies a unit of data.
+    ///         An application can also be notified of changes by initiating an advise loop on an item name using the
+    ///         <c>StartAdvise</c> method.  Advise
+    ///         loops can either be warm or hot.  A hot advise loop returns the data associated with an item name when it
+    ///         changes whereas a warm advise loop
+    ///         only notifies the application without sending any data.  Commands can be sent to the server using the
+    ///         <c>Execute</c> method.
+    ///     </para>
+    ///     <para>
+    ///         Callbacks and events are invoked on the thread hosting the <c>DdeContext</c>.  All operations must be marshaled
+    ///         onto the thread hosting the
+    ///         <c>DdeContext</c> associated with this object.  Method calls will block until that thread becomes available.
+    ///         An exception will be generated
+    ///         if the thread does not become available in a timely manner.
+    ///     </para>
+    /// </remarks>
+    /// <include file='Documentation/Examples.xml' path='Comment/Member[@name="DdeClient"]/*' />
+    public class DdeClient : IDisposable
+        {
+        internal static EventLog EventLogWriter =
                     CreateEventsLogger.CreaterEventLogger("NDDE Events", "NdDeEventsLog");
 
-                private EventHandler<DdeAdviseEventArgs> _AdviseEvent;
-                private DdeContext _Context;
+        private EventHandler<DdeAdviseEventArgs> _AdviseEvent;
+        private DdeContext _Context;
 
-                private DdemlClient _DdemlObject; // This has lazy initialization through a property.
-                private EventHandler<DdeDisconnectedEventArgs> _DisconnectedEvent;
+        private DdemlClient _DdemlObject; // This has lazy initialization through a property.
+        private EventHandler<DdeDisconnectedEventArgs> _DisconnectedEvent;
 
-                private IntPtr _Handle = IntPtr.Zero; // This is a cached DdemlClient property.
-                private bool _IsConnected; // This is a cached DdemlClient property.
-                private bool _IsPaused; // This is a cached DdemlClient property.
+        private IntPtr _Handle = IntPtr.Zero; // This is a cached DdemlClient property.
+        private bool _IsConnected; // This is a cached DdemlClient property.
+        private bool _IsPaused; // This is a cached DdemlClient property.
 
-                private readonly object _LockObject = new object();
-                private string _Service = ""; // This is a cached DdemlClient property.
-                private string _Topic = ""; // This is a cached DdemlClient property.
+        private readonly object _LockObject = new object();
+        private string _Service = ""; // This is a cached DdemlClient property.
+        private string _Topic = ""; // This is a cached DdemlClient property.
 
-                /// <overloads>
-                ///     <summary>
-                ///     </summary>
-                /// </overloads>
-                /// <summary>
-                ///     This initializes a new instance of the <c>DdeClient</c> class that can connect to a server that supports the
-                ///     specified service name and
-                ///     topic name pair.
-                /// </summary>
-                /// <param name="service">
-                ///     A service name supported by a server application.
-                /// </param>
-                /// <param name="topic">
-                ///     A topic name support by a server application.
-                /// </param>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when servic or topic exceeds 255 characters.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when service or topic is a null reference.
-                /// </exception>
-                public DdeClient(string service, string topic)
-                    : this(service, topic, DdeContext.GetDefault())
-                    { }
+        /// <overloads>
+        ///     <summary>
+        ///     </summary>
+        /// </overloads>
+        /// <summary>
+        ///     This initializes a new instance of the <c>DdeClient</c> class that can connect to a server that supports the
+        ///     specified service name and
+        ///     topic name pair.
+        /// </summary>
+        /// <param name="service">
+        ///     A service name supported by a server application.
+        /// </param>
+        /// <param name="topic">
+        ///     A topic name support by a server application.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when servic or topic exceeds 255 characters.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when service or topic is a null reference.
+        /// </exception>
+        public DdeClient(string service, string topic)
+            : this(service, topic, DdeContext.GetDefault())
+            { }
 
-                /// <summary>
-                ///     This initializes a new instance of the <c>DdeClient</c> class that can connect to a server that supports the
-                ///     specified service name and
-                ///     topic name pair using the specified synchronizing object.
-                /// </summary>
-                /// <param name="service">
-                ///     A service name supported by a server application.
-                /// </param>
-                /// <param name="topic">
-                ///     A topic name support by a server application.
-                /// </param>
-                /// <param name="synchronizingObject">
-                ///     The synchronizing object to use for this instance.
-                /// </param>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when service or topic exceeds 255 characters.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when service or topic is a null reference.
-                /// </exception>
-                public DdeClient(string service, string topic, ISynchronizeInvoke synchronizingObject)
-                    : this(service, topic, DdeContext.GetDefault(synchronizingObject))
-                    { }
+        /// <summary>
+        ///     This initializes a new instance of the <c>DdeClient</c> class that can connect to a server that supports the
+        ///     specified service name and
+        ///     topic name pair using the specified synchronizing object.
+        /// </summary>
+        /// <param name="service">
+        ///     A service name supported by a server application.
+        /// </param>
+        /// <param name="topic">
+        ///     A topic name support by a server application.
+        /// </param>
+        /// <param name="synchronizingObject">
+        ///     The synchronizing object to use for this instance.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when service or topic exceeds 255 characters.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when service or topic is a null reference.
+        /// </exception>
+        public DdeClient(string service, string topic, ISynchronizeInvoke synchronizingObject)
+            : this(service, topic, DdeContext.GetDefault(synchronizingObject))
+            { }
 
-                /// <summary>
-                ///     This initializes a new instance of the <c>DdeClient</c> class that can connect to a server that supports the
-                ///     specified service name and
-                ///     topic name pair and uses the specified context.
-                /// </summary>
-                /// <param name="service">
-                ///     A service name supported by a server application.
-                /// </param>
-                /// <param name="topic">
-                ///     A topic name support by a server application.
-                /// </param>
-                /// <param name="context">
-                ///     The context to use for execution.
-                /// </param>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when servic or topic exceeds 255 characters.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when service or topic is a null reference.
-                /// </exception>
-                public DdeClient(string service, string topic, DdeContext context)
+        /// <summary>
+        ///     This initializes a new instance of the <c>DdeClient</c> class that can connect to a server that supports the
+        ///     specified service name and
+        ///     topic name pair and uses the specified context.
+        /// </summary>
+        /// <param name="service">
+        ///     A service name supported by a server application.
+        /// </param>
+        /// <param name="topic">
+        ///     A topic name support by a server application.
+        /// </param>
+        /// <param name="context">
+        ///     The context to use for execution.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when servic or topic exceeds 255 characters.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when service or topic is a null reference.
+        /// </exception>
+        public DdeClient(string service, string topic, DdeContext context)
+            {
+            Service = service;
+            Topic = topic;
+            Context = context;
+            }
+
+        /// <summary>
+        /// </summary>
+        internal DdemlClient DdemlObject
+            {
+            get
+                {
+                lock (_LockObject)
                     {
-                        Service = service;
-                        Topic = topic;
-                        Context = context;
+                    if (_DdemlObject == null)
+                        {
+                        _DdemlObject = new DdemlClient(Service, Topic, Context.DdemlObject);
+                        _DdemlObject.Advise += OnAdviseReceived;
+                        _DdemlObject.Disconnected += OnDisconnected;
+                        _DdemlObject.StateChange += OnStateChange;
+                        }
+                    return _DdemlObject;
                     }
+                }
+            }
 
-                /// <summary>
-                /// </summary>
-                internal DdemlClient DdemlObject
+        /// <summary>
+        ///     This gets the context associated with this instance.
+        /// </summary>
+        public virtual DdeContext Context
+            {
+            get
+                {
+                lock (_LockObject)
                     {
-                        get
-                            {
-                                lock (_LockObject)
-                                    {
-                                        if (_DdemlObject == null)
-                                            {
-                                                _DdemlObject = new DdemlClient(Service, Topic, Context.DdemlObject);
-                                                _DdemlObject.Advise += OnAdviseReceived;
-                                                _DdemlObject.Disconnected += OnDisconnected;
-                                                _DdemlObject.StateChange += OnStateChange;
-                                            }
-                                        return _DdemlObject;
-                                    }
-                            }
+                    return _Context;
                     }
-
-                /// <summary>
-                ///     This gets the context associated with this instance.
-                /// </summary>
-                public virtual DdeContext Context
+                }
+            private set
+                {
+                lock (_LockObject)
                     {
-                        get
-                            {
-                                lock (_LockObject)
-                                    {
-                                        return _Context;
-                                    }
-                            }
-                        private set
-                            {
-                                lock (_LockObject)
-                                    {
-                                        _Context = value;
-                                    }
-                            }
+                    _Context = value;
                     }
+                }
+            }
 
-                /// <summary>
-                ///     This gets the service name associated with this conversation.
-                /// </summary>
-                public virtual string Service
+        /// <summary>
+        ///     This gets the service name associated with this conversation.
+        /// </summary>
+        public virtual string Service
+            {
+            get
+                {
+                lock (_LockObject)
                     {
-                        get
-                            {
-                                lock (_LockObject)
-                                    {
-                                        return _Service;
-                                    }
-                            }
-                        private set
-                            {
-                                lock (_LockObject)
-                                    {
-                                        _Service = value;
-                                    }
-                            }
+                    return _Service;
                     }
-
-                /// <summary>
-                ///     This gets the topic name associated with this conversation.
-                /// </summary>
-                public virtual string Topic
+                }
+            private set
+                {
+                lock (_LockObject)
                     {
-                        get
-                            {
-                                lock (_LockObject)
-                                    {
-                                        return _Topic;
-                                    }
-                            }
-                        private set
-                            {
-                                lock (_LockObject)
-                                    {
-                                        _Topic = value;
-                                    }
-                            }
+                    _Service = value;
                     }
+                }
+            }
 
-                /// <summary>
-                ///     This gets the DDEML handle associated with this conversation.
-                /// </summary>
-                /// <remarks>
-                ///     <para>
-                ///         This can be used in any DDEML function requiring a conversation handle.
-                ///     </para>
-                ///     <para>
-                ///         <note type="caution">
-                ///             Incorrect usage of the DDEML can cause this object to function incorrectly and can lead to resource leaks.
-                ///         </note>
-                ///     </para>
-                /// </remarks>
-                public virtual IntPtr Handle
+        /// <summary>
+        ///     This gets the topic name associated with this conversation.
+        /// </summary>
+        public virtual string Topic
+            {
+            get
+                {
+                lock (_LockObject)
                     {
-                        get
-                            {
-                                lock (_LockObject)
-                                    {
-                                        return _Handle;
-                                    }
-                            }
+                    return _Topic;
                     }
-
-                /// <summary>
-                ///     This gets a bool indicating whether this conversation is paused.
-                /// </summary>
-                public virtual bool IsPaused
+                }
+            private set
+                {
+                lock (_LockObject)
                     {
-                        get
-                            {
-                                lock (_LockObject)
-                                    {
-                                        return _IsPaused;
-                                    }
-                            }
+                    _Topic = value;
                     }
+                }
+            }
 
-                /// <summary>
-                ///     This gets a bool indicating whether the conversation is established.
-                /// </summary>
-                /// <remarks>
-                ///     <note type="caution">
-                ///         Do not assume that the conversation is still established after checking this property.  The conversation can
-                ///         terminate at any time.
-                ///     </note>
-                /// </remarks>
-                public virtual bool IsConnected
+        /// <summary>
+        ///     This gets the DDEML handle associated with this conversation.
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         This can be used in any DDEML function requiring a conversation handle.
+        ///     </para>
+        ///     <para>
+        ///         <note type="caution">
+        ///             Incorrect usage of the DDEML can cause this object to function incorrectly and can lead to resource leaks.
+        ///         </note>
+        ///     </para>
+        /// </remarks>
+        public virtual IntPtr Handle
+            {
+            get
+                {
+                lock (_LockObject)
                     {
-                        get
-                            {
-                                lock (_LockObject)
-                                    {
-                                        return _IsConnected;
-                                    }
-                            }
+                    return _Handle;
                     }
+                }
+            }
 
-                /// <summary>
-                ///     This terminates the current conversation and releases all resources held by this instance.
-                /// </summary>
-                public void Dispose()
+        /// <summary>
+        ///     This gets a bool indicating whether this conversation is paused.
+        /// </summary>
+        public virtual bool IsPaused
+            {
+            get
+                {
+                lock (_LockObject)
                     {
-                        Dispose(true);
+                    return _IsPaused;
                     }
+                }
+            }
 
-                /// <summary>
-                ///     This is raised when the data has changed for an item name that has an advise loop.
-                /// </summary>
-                public event EventHandler<DdeAdviseEventArgs> Advise
+        /// <summary>
+        ///     This gets a bool indicating whether the conversation is established.
+        /// </summary>
+        /// <remarks>
+        ///     <note type="caution">
+        ///         Do not assume that the conversation is still established after checking this property.  The conversation can
+        ///         terminate at any time.
+        ///     </note>
+        /// </remarks>
+        public virtual bool IsConnected
+            {
+            get
+                {
+                lock (_LockObject)
                     {
-                        add
-                            {
-                                lock (_LockObject)
-                                    {
-                                        _AdviseEvent += value;
-                                    }
-                            }
-                        remove
-                            {
-                                lock (_LockObject)
-                                    {
-                                        _AdviseEvent -= value;
-                                    }
-                            }
+                    return _IsConnected;
                     }
+                }
+            }
 
-                /// <summary>
-                ///     This is raised when the client has been disconnected.
-                /// </summary>
-                public event EventHandler<DdeDisconnectedEventArgs> Disconnected
+        /// <summary>
+        ///     This terminates the current conversation and releases all resources held by this instance.
+        /// </summary>
+        public void Dispose()
+            {
+            Dispose(true);
+            }
+
+        /// <summary>
+        ///     This is raised when the data has changed for an item name that has an advise loop.
+        /// </summary>
+        public event EventHandler<DdeAdviseEventArgs> Advise
+            {
+            add
+                {
+                lock (_LockObject)
                     {
-                        add
-                            {
-                                lock (_LockObject)
-                                    {
-                                        _DisconnectedEvent += value;
-                                    }
-                            }
-                        remove
-                            {
-                                lock (_LockObject)
-                                    {
-                                        _DisconnectedEvent -= value;
-                                    }
-                            }
+                    _AdviseEvent += value;
                     }
-
-                /// <summary>
-                ///     This contains the implementation to release all resources held by this instance.
-                /// </summary>
-                /// <param name="disposing">
-                ///     True if called by Dispose, false otherwise.
-                /// </param>
-                protected virtual void Dispose(bool disposing)
+                }
+            remove
+                {
+                lock (_LockObject)
                     {
-                        if (disposing)
-                            {
-                                ThreadStart method = delegate { DdemlObject.Dispose(); };
-
-                                try
-                                    {
-                                        Context.Invoke(method);
-                                    }
-                                catch
-                                    {
-                                        // Swallow any exception that occurs.
-                                    }
-                            }
+                    _AdviseEvent -= value;
                     }
+                }
+            }
 
-                /// <summary>
-                ///     This establishes a conversation with a server that supports the specified service name and topic name pair.
-                /// </summary>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the client is already connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the client could not connect to the server.
-                /// </exception>
-                public virtual void Connect()
+        /// <summary>
+        ///     This is raised when the client has been disconnected.
+        /// </summary>
+        public event EventHandler<DdeDisconnectedEventArgs> Disconnected
+            {
+            add
+                {
+                lock (_LockObject)
                     {
-                        ThreadStart method = delegate { DdemlObject.Connect(); };
-
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                EventLogWriter.WriteEntry($"Connect:{e.Message} - {e.StackTrace}",
-                                    EventLogEntryType.Error);
-                                throw new DdeException(e);
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
+                    _DisconnectedEvent += value;
                     }
-
-                /// <summary>
-                ///     This establishes a conversation with a server that supports the specified service name and topic name pair.
-                /// </summary>
-                /// <returns>
-                ///     Zero if the operation succeed or non-zero if the operation failed.
-                /// </returns>
-                public virtual int TryConnect()
+                }
+            remove
+                {
+                lock (_LockObject)
                     {
-                        int result = 0;
-
-                        ThreadStart method = delegate { result = DdemlObject.TryConnect(); };
-
-                        try
-                            {
-                                Context.Invoke(method);
-                                return result;
-                            }
-                        catch (DdemlException e)
-                            {
-                                EventLogWriter.WriteEntry($"TryConnect:{e.Message} - {e.StackTrace}",
-                                    EventLogEntryType.Error);
-
-                                throw new DdeException(e);
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
+                    _DisconnectedEvent -= value;
                     }
+                }
+            }
 
-                /// <summary>
-                ///     This terminates the current conversation.
-                /// </summary>
-                /// <event cref="Disconnected" />
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the client was not previously connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thown when the client could not disconnect from the server.
-                /// </exception>
-                public virtual void Disconnect()
+        /// <summary>
+        ///     This contains the implementation to release all resources held by this instance.
+        /// </summary>
+        /// <param name="disposing">
+        ///     True if called by Dispose, false otherwise.
+        /// </param>
+        protected virtual void Dispose(bool disposing)
+            {
+            if (disposing)
+                {
+                ThreadStart method = delegate { DdemlObject.Dispose(); };
+
+                try
                     {
-                        ThreadStart method = delegate { DdemlObject.Disconnect(); };
-
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                EventLogWriter.WriteEntry($"Disconnect:{e.Message} - {e.StackTrace}",
-                                    EventLogEntryType.Error);
-
-                                throw new DdeException(e);
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
+                    Context.Invoke(method);
                     }
-
-                /// <summary>
-                ///     This pauses the current conversation.
-                /// </summary>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the conversation is already paused.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the conversation could not be paused or when the client is not connected.
-                /// </exception>
-                /// <remarks>
-                ///     Synchronous operations will timeout if the conversation is paused.  Asynchronous operations can begin, but will not
-                ///     complete until the
-                ///     conversation has resumed.
-                /// </remarks>
-                public virtual void Pause()
+                catch
                     {
-                        ThreadStart method = delegate { DdemlObject.Pause(); };
-
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
+                    // Swallow any exception that occurs.
                     }
+                }
+            }
 
-                /// <summary>
-                ///     This resumes the current conversation.
-                /// </summary>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the conversation was not previously paused or when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the conversation could not be resumed.
-                /// </exception>
-                public virtual void Resume()
-                    {
-                        ThreadStart method = delegate { DdemlObject.Resume(); };
+        /// <summary>
+        ///     This establishes a conversation with a server that supports the specified service name and topic name pair.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the client is already connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the client could not connect to the server.
+        /// </exception>
+        public virtual void Connect()
+            {
+            ThreadStart method = delegate { DdemlObject.Connect(); };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Thread.Sleep(1000);
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                EventLogWriter.WriteEntry($"Connect:{e.Message} - {e.StackTrace}",
+                    EventLogEntryType.Error);
+                throw new DdeException(e);
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <summary>
-                ///     This terminates an asychronous operation.
-                /// </summary>
-                /// <param name="asyncResult">
-                ///     The <c>IAsyncResult</c> object returned by a call that begins an asynchronous operation.
-                /// </param>
-                /// <remarks>
-                ///     This method does nothing if the asynchronous operation has already completed.
-                /// </remarks>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when asyncResult is an invalid IAsyncResult.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when asyncResult is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the asynchronous operation could not be abandoned.
-                /// </exception>
-                public virtual void Abandon(IAsyncResult asyncResult)
-                    {
-                        ThreadStart method = delegate
+        /// <summary>
+        ///     This establishes a conversation with a server that supports the specified service name and topic name pair.
+        /// </summary>
+        /// <returns>
+        ///     Zero if the operation succeed or non-zero if the operation failed.
+        /// </returns>
+        public virtual int TryConnect()
+            {
+            int result = 0;
+
+            ThreadStart method = delegate { result = DdemlObject.TryConnect(); };
+
+            try
+                {
+                Context.Invoke(method);
+                return result;
+                }
+            catch (DdemlException e)
+                {
+                EventLogWriter.WriteEntry($"TryConnect:{e.Message} - {e.StackTrace}",
+                    EventLogEntryType.Error);
+
+                throw new DdeException(e);
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
+
+        /// <summary>
+        ///     This terminates the current conversation.
+        /// </summary>
+        /// <event cref="Disconnected" />
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the client was not previously connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thown when the client could not disconnect from the server.
+        /// </exception>
+        public virtual void Disconnect()
+            {
+            ThreadStart method = delegate { DdemlObject.Disconnect(); };
+
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                EventLogWriter.WriteEntry($"Disconnect:{e.Message} - {e.StackTrace}",
+                    EventLogEntryType.Error);
+
+                throw new DdeException(e);
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
+
+        /// <summary>
+        ///     This pauses the current conversation.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the conversation is already paused.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the conversation could not be paused or when the client is not connected.
+        /// </exception>
+        /// <remarks>
+        ///     Synchronous operations will timeout if the conversation is paused.  Asynchronous operations can begin, but will not
+        ///     complete until the
+        ///     conversation has resumed.
+        /// </remarks>
+        public virtual void Pause()
+            {
+            ThreadStart method = delegate { DdemlObject.Pause(); };
+
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
+
+        /// <summary>
+        ///     This resumes the current conversation.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the conversation was not previously paused or when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the conversation could not be resumed.
+        /// </exception>
+        public virtual void Resume()
+            {
+            ThreadStart method = delegate { DdemlObject.Resume(); };
+
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
+
+        /// <summary>
+        ///     This terminates an asychronous operation.
+        /// </summary>
+        /// <param name="asyncResult">
+        ///     The <c>IAsyncResult</c> object returned by a call that begins an asynchronous operation.
+        /// </param>
+        /// <remarks>
+        ///     This method does nothing if the asynchronous operation has already completed.
+        /// </remarks>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when asyncResult is an invalid IAsyncResult.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when asyncResult is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the asynchronous operation could not be abandoned.
+        /// </exception>
+        public virtual void Abandon(IAsyncResult asyncResult)
+            {
+            ThreadStart method = delegate
                             {
                                 if (asyncResult is AsyncResult)
                                     DdemlObject.Abandon(((AsyncResult) asyncResult).DdemlAsyncResult);
                                 else
                                     DdemlObject.Abandon(InvalidAsyncResult.Instance);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <summary>
-                ///     This sends a command to the server application.
-                /// </summary>
-                /// <param name="command">
-                ///     The command to be sent to the server application.
-                /// </param>
-                /// <param name="timeout">
-                ///     The amount of time in milliseconds to wait for a response.
-                /// </param>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when command exceeds 255 characters or timeout is negative.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when command is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not process the command.
-                /// </exception>
-                /// <remarks>
-                ///     This operation will timeout if the conversation is paused.
-                /// </remarks>
-                public virtual void Execute(string command, int timeout)
-                    {
-                        ThreadStart method = delegate { DdemlObject.Execute(command, timeout); };
+        /// <summary>
+        ///     This sends a command to the server application.
+        /// </summary>
+        /// <param name="command">
+        ///     The command to be sent to the server application.
+        /// </param>
+        /// <param name="timeout">
+        ///     The amount of time in milliseconds to wait for a response.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when command exceeds 255 characters or timeout is negative.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when command is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not process the command.
+        /// </exception>
+        /// <remarks>
+        ///     This operation will timeout if the conversation is paused.
+        /// </remarks>
+        public virtual void Execute(string command, int timeout = 500)
+            {
+            ThreadStart method = delegate { DdemlObject.Execute(command, timeout); };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <summary>
-                ///     This sends a command to the server application.
-                /// </summary>
-                /// <param name="command">
-                ///     The command to be sent to the server application.
-                /// </param>
-                /// <param name="timeout">
-                ///     The amount of time in milliseconds to wait for a response.
-                /// </param>
-                /// <returns>
-                ///     Zero if the operation succeed or non-zero if the operation failed.
-                /// </returns>
-                /// <remarks>
-                ///     This operation will timeout if the conversation is paused.
-                /// </remarks>
-                public virtual int TryExecute(string command, int timeout)
-                    {
-                        int result = 0;
+        /// <summary>
+        ///     This sends a command to the server application.
+        /// </summary>
+        /// <param name="command">
+        ///     The command to be sent to the server application.
+        /// </param>
+        /// <param name="timeout">
+        ///     The amount of time in milliseconds to wait for a response.
+        /// </param>
+        /// <returns>
+        ///     Zero if the operation succeed or non-zero if the operation failed.
+        /// </returns>
+        /// <remarks>
+        ///     This operation will timeout if the conversation is paused.
+        /// </remarks>
+        public virtual int TryExecute(string command, int timeout)
+            {
+            int result = 0;
 
-                        ThreadStart method = delegate { result = DdemlObject.TryExecute(command, timeout); };
+            ThreadStart method = delegate { result = DdemlObject.TryExecute(command, timeout); };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                                return result;
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                return result;
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <summary>
-                ///     This begins an asynchronous operation to send a command to the server application.
-                /// </summary>
-                /// <param name="command">
-                ///     The command to be sent to the server application.
-                /// </param>
-                /// <param name="callback">
-                ///     The delegate to invoke when this operation completes.
-                /// </param>
-                /// <param name="state">
-                ///     An application defined data object to associate with this operation.
-                /// </param>
-                /// <returns>
-                ///     An <c>IAsyncResult</c> object for this operation.
-                /// </returns>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when command exceeds 255 characters.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when command is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the asynchronous operation could not begin.
-                /// </exception>
-                public virtual IAsyncResult BeginExecute(string command, AsyncCallback callback, object state)
-                    {
-                        var ar = new AsyncResult(Context);
-                        ar.Callback = callback;
-                        ar.State = state;
+        /// <summary>
+        ///     This begins an asynchronous operation to send a command to the server application.
+        /// </summary>
+        /// <param name="command">
+        ///     The command to be sent to the server application.
+        /// </param>
+        /// <param name="callback">
+        ///     The delegate to invoke when this operation completes.
+        /// </param>
+        /// <param name="state">
+        ///     An application defined data object to associate with this operation.
+        /// </param>
+        /// <returns>
+        ///     An <c>IAsyncResult</c> object for this operation.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when command exceeds 255 characters.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when command is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the asynchronous operation could not begin.
+        /// </exception>
+        public virtual IAsyncResult BeginExecute(string command, AsyncCallback callback, object state)
+            {
+            var ar = new AsyncResult(Context);
+            ar.Callback = callback;
+            ar.State = state;
 
-                        ThreadStart method = delegate
+            ThreadStart method = delegate
                             {
                                 ar.DdemlAsyncResult = DdemlObject.BeginExecute(command, OnExecuteComplete, ar);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
 
-                        return ar;
-                    }
+            return ar;
+            }
 
-                /// <summary>
-                ///     This throws any exception that occurred during the asynchronous operation.
-                /// </summary>
-                /// <param name="asyncResult">
-                ///     The <c>IAsyncResult</c> object returned by a call to <c>BeginExecute</c>.
-                /// </param>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when asyncResult is an invalid IAsyncResult.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when asyncResult is a null reference.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not process the command.
-                /// </exception>
-                public virtual void EndExecute(IAsyncResult asyncResult)
-                    {
-                        ThreadStart method = delegate
+        /// <summary>
+        ///     This throws any exception that occurred during the asynchronous operation.
+        /// </summary>
+        /// <param name="asyncResult">
+        ///     The <c>IAsyncResult</c> object returned by a call to <c>BeginExecute</c>.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when asyncResult is an invalid IAsyncResult.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when asyncResult is a null reference.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not process the command.
+        /// </exception>
+        public virtual void EndExecute(IAsyncResult asyncResult)
+            {
+            ThreadStart method = delegate
                             {
                                 if (asyncResult is AsyncResult)
                                     DdemlObject.EndExecute(((AsyncResult) asyncResult).DdemlAsyncResult);
                                 else
                                     DdemlObject.EndExecute(InvalidAsyncResult.Instance);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <overloads>
-                ///     <summary>
-                ///     </summary>
-                /// </overloads>
-                /// <summary>
-                ///     This sends data to the server application.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="data">
-                ///     The data to send.
-                /// </param>
-                /// <param name="timeout">
-                ///     The amount of time in milliseconds to wait for a response.
-                /// </param>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters or timeout is negative.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item or data is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not process the data.
-                /// </exception>
-                /// <remarks>
-                ///     This operation will timeout if the conversation is paused.
-                /// </remarks>
-                public virtual void Poke(string item, string data, int timeout)
-                    {
-                        Poke(item, Context.Encoding.GetBytes(data + "\0"), 1, timeout);
-                    }
+        /// <overloads>
+        ///     <summary>
+        ///     </summary>
+        /// </overloads>
+        /// <summary>
+        ///     This sends data to the server application.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="data">
+        ///     The data to send.
+        /// </param>
+        /// <param name="timeout">
+        ///     The amount of time in milliseconds to wait for a response.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters or timeout is negative.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item or data is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not process the data.
+        /// </exception>
+        /// <remarks>
+        ///     This operation will timeout if the conversation is paused.
+        /// </remarks>
+        public virtual void Poke(string item, string data, int timeout)
+            {
+            Poke(item, Context.Encoding.GetBytes(data + "\0"), 1, timeout);
+            }
 
-                /// <summary>
-                ///     This sends data to the server application.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="data">
-                ///     The data to send.
-                /// </param>
-                /// <param name="format">
-                ///     The format of the data.
-                /// </param>
-                /// <param name="timeout">
-                ///     The amount of time in milliseconds to wait for a response.
-                /// </param>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters or timeout is negative.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item or data is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not process the data.
-                /// </exception>
-                /// <remarks>
-                ///     This operation will timeout if the conversation is paused.
-                /// </remarks>
-                public virtual void Poke(string item, byte[] data, int format, int timeout)
-                    {
-                        ThreadStart method = delegate { DdemlObject.Poke(item, data, format, timeout); };
+        /// <summary>
+        ///     This sends data to the server application.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="data">
+        ///     The data to send.
+        /// </param>
+        /// <param name="format">
+        ///     The format of the data.
+        /// </param>
+        /// <param name="timeout">
+        ///     The amount of time in milliseconds to wait for a response.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters or timeout is negative.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item or data is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not process the data.
+        /// </exception>
+        /// <remarks>
+        ///     This operation will timeout if the conversation is paused.
+        /// </remarks>
+        public virtual void Poke(string item, byte[] data, int format, int timeout)
+            {
+            ThreadStart method = delegate { DdemlObject.Poke(item, data, format, timeout); };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <summary>
-                ///     This sends data to the server application.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="data">
-                ///     The data to send.
-                /// </param>
-                /// <param name="format">
-                ///     The format of the data.
-                /// </param>
-                /// <param name="timeout">
-                ///     The amount of time in milliseconds to wait for a response.
-                /// </param>
-                /// <returns>
-                ///     Zero if the operation succeed or non-zero if the operation failed.
-                /// </returns>
-                /// <remarks>
-                ///     This operation will timeout if the conversation is paused.
-                /// </remarks>
-                public virtual int TryPoke(string item, byte[] data, int format, int timeout)
-                    {
-                        int result = 0;
+        /// <summary>
+        ///     This sends data to the server application.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="data">
+        ///     The data to send.
+        /// </param>
+        /// <param name="format">
+        ///     The format of the data.
+        /// </param>
+        /// <param name="timeout">
+        ///     The amount of time in milliseconds to wait for a response.
+        /// </param>
+        /// <returns>
+        ///     Zero if the operation succeed or non-zero if the operation failed.
+        /// </returns>
+        /// <remarks>
+        ///     This operation will timeout if the conversation is paused.
+        /// </remarks>
+        public virtual int TryPoke(string item, byte[] data, int format, int timeout)
+            {
+            int result = 0;
 
-                        ThreadStart method = delegate { result = DdemlObject.TryPoke(item, data, format, timeout); };
+            ThreadStart method = delegate { result = DdemlObject.TryPoke(item, data, format, timeout); };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                                return result;
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                return result;
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <summary>
-                ///     This begins an asynchronous operation to send data to the server application.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="data">
-                ///     The data to send.
-                /// </param>
-                /// <param name="format">
-                ///     The format of the data.
-                /// </param>
-                /// <param name="callback">
-                ///     The delegate to invoke when this operation completes.
-                /// </param>
-                /// <param name="state">
-                ///     An application defined data object to associate with this operation.
-                /// </param>
-                /// <returns>
-                ///     An <c>IAsyncResult</c> object for this operation.
-                /// </returns>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item or data is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the asynchronous operation could not begin.
-                /// </exception>
-                public virtual IAsyncResult BeginPoke(string item, byte[] data, int format, AsyncCallback callback,
-                    object state)
-                    {
-                        var ar = new AsyncResult(Context);
-                        ar.Callback = callback;
-                        ar.State = state;
+        /// <summary>
+        ///     This begins an asynchronous operation to send data to the server application.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="data">
+        ///     The data to send.
+        /// </param>
+        /// <param name="format">
+        ///     The format of the data.
+        /// </param>
+        /// <param name="callback">
+        ///     The delegate to invoke when this operation completes.
+        /// </param>
+        /// <param name="state">
+        ///     An application defined data object to associate with this operation.
+        /// </param>
+        /// <returns>
+        ///     An <c>IAsyncResult</c> object for this operation.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item or data is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the asynchronous operation could not begin.
+        /// </exception>
+        public virtual IAsyncResult BeginPoke(string item, byte[] data, int format, AsyncCallback callback,
+            object state)
+            {
+            var ar = new AsyncResult(Context);
+            ar.Callback = callback;
+            ar.State = state;
 
-                        ThreadStart method = delegate
+            ThreadStart method = delegate
                             {
                                 ar.DdemlAsyncResult = DdemlObject.BeginPoke(item, data, format, OnPokeComplete, ar);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
 
-                        return ar;
-                    }
+            return ar;
+            }
 
-                /// <summary>
-                ///     This throws any exception that occurred during the asynchronous operation.
-                /// </summary>
-                /// <param name="asyncResult">
-                ///     The <c>IAsyncResult</c> object returned by a call to <c>BeginPoke</c>.
-                /// </param>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when asyncResult is an invalid IAsyncResult.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when asyncResult is a null reference.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not process the data.
-                /// </exception>
-                public virtual void EndPoke(IAsyncResult asyncResult)
-                    {
-                        ThreadStart method = delegate
+        /// <summary>
+        ///     This throws any exception that occurred during the asynchronous operation.
+        /// </summary>
+        /// <param name="asyncResult">
+        ///     The <c>IAsyncResult</c> object returned by a call to <c>BeginPoke</c>.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when asyncResult is an invalid IAsyncResult.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when asyncResult is a null reference.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not process the data.
+        /// </exception>
+        public virtual void EndPoke(IAsyncResult asyncResult)
+            {
+            ThreadStart method = delegate
                             {
                                 if (asyncResult is AsyncResult)
                                     DdemlObject.EndPoke(((AsyncResult) asyncResult).DdemlAsyncResult);
                                 else
                                     DdemlObject.EndPoke(InvalidAsyncResult.Instance);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <overloads>
-                ///     <summary>
-                ///     </summary>
-                /// </overloads>
-                /// <summary>
-                ///     This requests data using the specified item name.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="timeout">
-                ///     The amount of time in milliseconds to wait for a response.
-                /// </param>
-                /// <returns>
-                ///     The data returned by the server application in CF_TEXT format.
-                /// </returns>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters or timeout is negative.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not process the request.
-                /// </exception>
-                /// <remarks>
-                ///     This operation will timeout if the conversation is paused.
-                /// </remarks>
-                public virtual string Request(string item, int timeout)
-                    {
-                        return Context.Encoding.GetString(Request(item, 1, timeout));
-                    }
+        /// <overloads>
+        ///     <summary>
+        ///     </summary>
+        /// </overloads>
+        /// <summary>
+        ///     This requests data using the specified item name.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="timeout">
+        ///     The amount of time in milliseconds to wait for a response.
+        /// </param>
+        /// <returns>
+        ///     The data returned by the server application in CF_TEXT format.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters or timeout is negative.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not process the request.
+        /// </exception>
+        /// <remarks>
+        ///     This operation will timeout if the conversation is paused.
+        /// </remarks>
+        public virtual string Request(string item, int timeout)
+            {
+            return Context.Encoding.GetString(Request(item, 1, timeout));
+            }
 
-                /// <summary>
-                ///     This requests data using the specified item name.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="format">
-                ///     The format of the data to return.
-                /// </param>
-                /// <param name="timeout">
-                ///     The amount of time in milliseconds to wait for a response.
-                /// </param>
-                /// <returns>
-                ///     The data returned by the server application.
-                /// </returns>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters or timeout is negative.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not process the request.
-                /// </exception>
-                /// <remarks>
-                ///     This operation will timeout if the conversation is paused.
-                /// </remarks>
-                public virtual byte[] Request(string item, int format, int timeout)
-                    {
-                        byte[] result = null;
+        /// <summary>
+        ///     This requests data using the specified item name.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="format">
+        ///     The format of the data to return.
+        /// </param>
+        /// <param name="timeout">
+        ///     The amount of time in milliseconds to wait for a response.
+        /// </param>
+        /// <returns>
+        ///     The data returned by the server application.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters or timeout is negative.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not process the request.
+        /// </exception>
+        /// <remarks>
+        ///     This operation will timeout if the conversation is paused.
+        /// </remarks>
+        public virtual byte[] Request(string item, int format, int timeout)
+            {
+            byte[] result = null;
 
-                        ThreadStart method = delegate { result = DdemlObject.Request(item, format, timeout); };
+            ThreadStart method = delegate { result = DdemlObject.Request(item, format, timeout); };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                                return result;
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                return result;
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <summary>
-                ///     This requests data using the specified item name.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="format">
-                ///     The format of the data to return.
-                /// </param>
-                /// <param name="timeout">
-                ///     The amount of time in milliseconds to wait for a response.
-                /// </param>
-                /// <param name="data">
-                ///     The data returned by the server application.
-                /// </param>
-                /// <returns>
-                ///     Zero if the operation succeeded or non-zero if the operation failed.
-                /// </returns>
-                /// <remarks>
-                ///     This operation will timeout if the conversation is paused.
-                /// </remarks>
-                public virtual int TryRequest(string item, int format, int timeout, out byte[] data)
-                    {
-                        byte[] data2 = null;
-                        int result = 0;
+        /// <summary>
+        ///     This requests data using the specified item name.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="format">
+        ///     The format of the data to return.
+        /// </param>
+        /// <param name="timeout">
+        ///     The amount of time in milliseconds to wait for a response.
+        /// </param>
+        /// <param name="data">
+        ///     The data returned by the server application.
+        /// </param>
+        /// <returns>
+        ///     Zero if the operation succeeded or non-zero if the operation failed.
+        /// </returns>
+        /// <remarks>
+        ///     This operation will timeout if the conversation is paused.
+        /// </remarks>
+        public virtual int TryRequest(string item, int format, int timeout, out byte[] data)
+            {
+            byte[] data2 = null;
+            int result = 0;
 
-                        ThreadStart method = delegate
+            ThreadStart method = delegate
                             {
                                 result = DdemlObject.TryRequest(item, format, timeout, out data2);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                                data = data2;
-                                return result;
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                data = data2;
+                return result;
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <summary>
-                ///     This begins an asynchronous operation to request data using the specified item name.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="format">
-                ///     The format of the data to return.
-                /// </param>
-                /// <param name="callback">
-                ///     The delegate to invoke when this operation completes.
-                /// </param>
-                /// <param name="state">
-                ///     An application defined data object to associate with this operation.
-                /// </param>
-                /// <returns>
-                ///     An <c>IAsyncResult</c> object for this operation.
-                /// </returns>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the asynchronous operation could not begin.
-                /// </exception>
-                public virtual IAsyncResult BeginRequest(string item, int format, AsyncCallback callback, object state)
-                    {
-                        var ar = new AsyncResult(Context);
-                        ar.Callback = callback;
-                        ar.State = state;
+        /// <summary>
+        ///     This begins an asynchronous operation to request data using the specified item name.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="format">
+        ///     The format of the data to return.
+        /// </param>
+        /// <param name="callback">
+        ///     The delegate to invoke when this operation completes.
+        /// </param>
+        /// <param name="state">
+        ///     An application defined data object to associate with this operation.
+        /// </param>
+        /// <returns>
+        ///     An <c>IAsyncResult</c> object for this operation.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the asynchronous operation could not begin.
+        /// </exception>
+        public virtual IAsyncResult BeginRequest(string item, int format, AsyncCallback callback, object state)
+            {
+            var ar = new AsyncResult(Context);
+            ar.Callback = callback;
+            ar.State = state;
 
-                        ThreadStart method = delegate
+            ThreadStart method = delegate
                             {
                                 ar.DdemlAsyncResult = DdemlObject.BeginRequest(item, format, OnRequestComplete, ar);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
 
-                        return ar;
-                    }
+            return ar;
+            }
 
-                /// <summary>
-                ///     This gets the data returned by the server application for the operation.
-                /// </summary>
-                /// <param name="asyncResult">
-                ///     The <c>IAsyncResult</c> object returned by a call to <c>BeginRequest</c>.
-                /// </param>
-                /// <returns>
-                ///     The data returned by the server application.
-                /// </returns>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when asyncResult is an invalid IAsyncResult.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when asyncResult is a null reference.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not process the request.
-                /// </exception>
-                public virtual byte[] EndRequest(IAsyncResult asyncResult)
-                    {
-                        byte[] result = null;
+        /// <summary>
+        ///     This gets the data returned by the server application for the operation.
+        /// </summary>
+        /// <param name="asyncResult">
+        ///     The <c>IAsyncResult</c> object returned by a call to <c>BeginRequest</c>.
+        /// </param>
+        /// <returns>
+        ///     The data returned by the server application.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when asyncResult is an invalid IAsyncResult.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when asyncResult is a null reference.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not process the request.
+        /// </exception>
+        public virtual byte[] EndRequest(IAsyncResult asyncResult)
+            {
+            byte[] result = null;
 
-                        ThreadStart method = delegate
+            ThreadStart method = delegate
                             {
                                 if (asyncResult is AsyncResult)
                                     result = DdemlObject.EndRequest(((AsyncResult) asyncResult).DdemlAsyncResult);
                                 else
                                     result = DdemlObject.EndRequest(InvalidAsyncResult.Instance);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                                return result;
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                return result;
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <overloads>
-                ///     <summary>
-                ///     </summary>
-                /// </overloads>
-                /// <summary>
-                ///     This initiates an advise loop on the specified item name.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="format">
-                ///     The format of the data to return.
-                /// </param>
-                /// <param name="hot">
-                ///     A bool indicating whether data should be included with the notification.
-                /// </param>
-                /// <param name="timeout">
-                ///     The amount of time in milliseconds to wait for a response.
-                /// </param>
-                /// <event cref="Advise" />
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters or timeout is negative.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the item is already being advised or when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not initiate the advise loop.
-                /// </exception>
-                /// <remarks>
-                ///     This operation will timeout if the conversation is paused.
-                /// </remarks>
-                public virtual void StartAdvise(string item, int format, bool hot, int timeout)
-                    {
-                        StartAdvise(item, format, hot, true, timeout, null);
-                    }
+        /// <overloads>
+        ///     <summary>
+        ///     </summary>
+        /// </overloads>
+        /// <summary>
+        ///     This initiates an advise loop on the specified item name.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="format">
+        ///     The format of the data to return.
+        /// </param>
+        /// <param name="hot">
+        ///     A bool indicating whether data should be included with the notification.
+        /// </param>
+        /// <param name="timeout">
+        ///     The amount of time in milliseconds to wait for a response.
+        /// </param>
+        /// <event cref="Advise" />
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters or timeout is negative.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the item is already being advised or when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not initiate the advise loop.
+        /// </exception>
+        /// <remarks>
+        ///     This operation will timeout if the conversation is paused.
+        /// </remarks>
+        public virtual void StartAdvise(string item, int format, bool hot, int timeout)
+            {
+            StartAdvise(item, format, hot, true, timeout, null);
+            }
 
-                /// <summary>
-                ///     This initiates an advise loop on the specified item name.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="format">
-                ///     The format of the data to return.
-                /// </param>
-                /// <param name="hot">
-                ///     A bool indicating whether data should be included with the notification.
-                /// </param>
-                /// <param name="acknowledge">
-                ///     A bool indicating whether the client should acknowledge each advisory before the server will send send another.
-                /// </param>
-                /// <param name="timeout">
-                ///     The amount of time in milliseconds to wait for a response.
-                /// </param>
-                /// <param name="adviseState">
-                ///     An application defined data object to associate with this advise loop.
-                /// </param>
-                /// <event cref="Advise" />
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters or timeout is negative.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the item is already being advised or when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not initiate the advise loop.
-                /// </exception>
-                /// <remarks>
-                ///     This operation will timeout if the conversation is paused.
-                /// </remarks>
-                public virtual void StartAdvise(string item, int format, bool hot, bool acknowledge, int timeout,
-                    object adviseState)
-                    {
-                        ThreadStart method = delegate
+        /// <summary>
+        ///     This initiates an advise loop on the specified item name.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="format">
+        ///     The format of the data to return.
+        /// </param>
+        /// <param name="hot">
+        ///     A bool indicating whether data should be included with the notification.
+        /// </param>
+        /// <param name="acknowledge">
+        ///     A bool indicating whether the client should acknowledge each advisory before the server will send send another.
+        /// </param>
+        /// <param name="timeout">
+        ///     The amount of time in milliseconds to wait for a response.
+        /// </param>
+        /// <param name="adviseState">
+        ///     An application defined data object to associate with this advise loop.
+        /// </param>
+        /// <event cref="Advise" />
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters or timeout is negative.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the item is already being advised or when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not initiate the advise loop.
+        /// </exception>
+        /// <remarks>
+        ///     This operation will timeout if the conversation is paused.
+        /// </remarks>
+        public virtual void StartAdvise(string item, int format, bool hot, bool acknowledge, int timeout,
+            object adviseState)
+            {
+            ThreadStart method = delegate
                             {
                                 DdemlObject.StartAdvise(item, format, hot, acknowledge, timeout, adviseState);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <overloads>
-                ///     <summary>
-                ///     </summary>
-                /// </overloads>
-                /// <summary>
-                ///     This begins an asynchronous operation to initiate an advise loop on the specified item name.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="format">
-                ///     The format of the data to be returned.
-                /// </param>
-                /// <param name="hot">
-                ///     A bool indicating whether data should be included with the notification.
-                /// </param>
-                /// <param name="callback">
-                ///     The delegate to invoke when this operation completes.
-                /// </param>
-                /// <param name="asyncState">
-                ///     An application defined data object to associate with this operation.
-                /// </param>
-                /// <returns>
-                ///     An <c>IAsyncResult</c> object for this operation.
-                /// </returns>
-                /// <event cref="Advise" />
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the item is already being advised or when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the asynchronous operation could not begin.
-                /// </exception>
-                public virtual IAsyncResult BeginStartAdvise(string item, int format, bool hot, AsyncCallback callback,
-                    object asyncState)
-                    {
-                        return BeginStartAdvise(item, format, hot, true, callback, asyncState, null);
-                    }
+        /// <overloads>
+        ///     <summary>
+        ///     </summary>
+        /// </overloads>
+        /// <summary>
+        ///     This begins an asynchronous operation to initiate an advise loop on the specified item name.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="format">
+        ///     The format of the data to be returned.
+        /// </param>
+        /// <param name="hot">
+        ///     A bool indicating whether data should be included with the notification.
+        /// </param>
+        /// <param name="callback">
+        ///     The delegate to invoke when this operation completes.
+        /// </param>
+        /// <param name="asyncState">
+        ///     An application defined data object to associate with this operation.
+        /// </param>
+        /// <returns>
+        ///     An <c>IAsyncResult</c> object for this operation.
+        /// </returns>
+        /// <event cref="Advise" />
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the item is already being advised or when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the asynchronous operation could not begin.
+        /// </exception>
+        public virtual IAsyncResult BeginStartAdvise(string item, int format, bool hot, AsyncCallback callback,
+            object asyncState)
+            {
+            return BeginStartAdvise(item, format, hot, true, callback, asyncState, null);
+            }
 
-                /// <summary>
-                ///     This begins an asynchronous operation to initiate an advise loop on the specified item name.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name supported by the current conversation.
-                /// </param>
-                /// <param name="format">
-                ///     The format of the data to be returned.
-                /// </param>
-                /// <param name="hot">
-                ///     A bool indicating whether data should be included with the notification.
-                /// </param>
-                /// <param name="acknowledge">
-                ///     A bool indicating whether the client should acknowledge each advisory before the server will send send another.
-                /// </param>
-                /// <param name="callback">
-                ///     The delegate to invoke when this operation completes.
-                /// </param>
-                /// <param name="asyncState">
-                ///     An application defined data object to associate with this operation.
-                /// </param>
-                /// <param name="adviseState">
-                ///     An application defined data object to associate with this advise loop.
-                /// </param>
-                /// <returns>
-                ///     An <c>IAsyncResult</c> object for this operation.
-                /// </returns>
-                /// <event cref="Advise" />
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the item is already being advised or when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the asynchronous operation could not begin.
-                /// </exception>
-                public virtual IAsyncResult BeginStartAdvise(string item, int format, bool hot, bool acknowledge,
-                    AsyncCallback callback, object asyncState, object adviseState)
-                    {
-                        var ar = new AsyncResult(Context);
-                        ar.Callback = callback;
-                        ar.State = asyncState;
+        /// <summary>
+        ///     This begins an asynchronous operation to initiate an advise loop on the specified item name.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name supported by the current conversation.
+        /// </param>
+        /// <param name="format">
+        ///     The format of the data to be returned.
+        /// </param>
+        /// <param name="hot">
+        ///     A bool indicating whether data should be included with the notification.
+        /// </param>
+        /// <param name="acknowledge">
+        ///     A bool indicating whether the client should acknowledge each advisory before the server will send send another.
+        /// </param>
+        /// <param name="callback">
+        ///     The delegate to invoke when this operation completes.
+        /// </param>
+        /// <param name="asyncState">
+        ///     An application defined data object to associate with this operation.
+        /// </param>
+        /// <param name="adviseState">
+        ///     An application defined data object to associate with this advise loop.
+        /// </param>
+        /// <returns>
+        ///     An <c>IAsyncResult</c> object for this operation.
+        /// </returns>
+        /// <event cref="Advise" />
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the item is already being advised or when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the asynchronous operation could not begin.
+        /// </exception>
+        public virtual IAsyncResult BeginStartAdvise(string item, int format, bool hot, bool acknowledge,
+            AsyncCallback callback, object asyncState, object adviseState)
+            {
+            var ar = new AsyncResult(Context);
+            ar.Callback = callback;
+            ar.State = asyncState;
 
-                        ThreadStart method = delegate
+            ThreadStart method = delegate
                             {
                                 ar.DdemlAsyncResult = DdemlObject.BeginStartAdvise(item, format, hot, acknowledge,
                                     OnStartAdviseComplete, ar, adviseState);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
 
-                        return ar;
-                    }
+            return ar;
+            }
 
-                /// <summary>
-                ///     This throws any exception that occurred during the operation.
-                /// </summary>
-                /// <param name="asyncResult">
-                ///     The <c>IAsyncResult</c> object returned by a call to <c>BeginPoke</c>.
-                /// </param>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when asyncResult is an invalid IAsyncResult.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when asyncResult is a null reference.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not initiate the advise loop.
-                /// </exception>
-                public virtual void EndStartAdvise(IAsyncResult asyncResult)
-                    {
-                        ThreadStart method = delegate
+        /// <summary>
+        ///     This throws any exception that occurred during the operation.
+        /// </summary>
+        /// <param name="asyncResult">
+        ///     The <c>IAsyncResult</c> object returned by a call to <c>BeginPoke</c>.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when asyncResult is an invalid IAsyncResult.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when asyncResult is a null reference.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not initiate the advise loop.
+        /// </exception>
+        public virtual void EndStartAdvise(IAsyncResult asyncResult)
+            {
+            ThreadStart method = delegate
                             {
                                 if (asyncResult is AsyncResult)
                                     DdemlObject.EndStartAdvise(((AsyncResult) asyncResult).DdemlAsyncResult);
                                 else
                                     DdemlObject.EndStartAdvise(InvalidAsyncResult.Instance);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <summary>
-                ///     This terminates the advise loop for the specified item name.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name that has an active advise loop.
-                /// </param>
-                /// <param name="timeout">
-                ///     The amount of time in milliseconds to wait for a response.
-                /// </param>
-                /// <remarks>
-                ///     This operation will timeout if the conversation is paused.
-                /// </remarks>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters or timeout is negative.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the item is not being advised or when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not terminate the advise loop.
-                /// </exception>
-                public virtual void StopAdvise(string item, int timeout)
-                    {
-                        ThreadStart method = delegate { DdemlObject.StopAdvise(item, timeout); };
+        /// <summary>
+        ///     This terminates the advise loop for the specified item name.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name that has an active advise loop.
+        /// </param>
+        /// <param name="timeout">
+        ///     The amount of time in milliseconds to wait for a response.
+        /// </param>
+        /// <remarks>
+        ///     This operation will timeout if the conversation is paused.
+        /// </remarks>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters or timeout is negative.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the item is not being advised or when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not terminate the advise loop.
+        /// </exception>
+        public virtual void StopAdvise(string item, int timeout)
+            {
+            ThreadStart method = delegate { DdemlObject.StopAdvise(item, timeout); };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                /// <summary>
-                ///     This begins an asynchronous operation to terminate the advise loop for the specified item name.
-                /// </summary>
-                /// <param name="item">
-                ///     An item name that has an active advise loop.
-                /// </param>
-                /// <param name="callback">
-                ///     The delegate to invoke when this operation completes.
-                /// </param>
-                /// <param name="state">
-                ///     An application defined data object to associate with this operation.
-                /// </param>
-                /// <returns>
-                ///     An <c>IAsyncResult</c> object for this operation.
-                /// </returns>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when item exceeds 255 characters.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when item is a null reference.
-                /// </exception>
-                /// <exception cref="InvalidOperationException">
-                ///     This is thrown when the item is not being advised or when the client is not connected.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the asynchronous operation could not begin.
-                /// </exception>
-                public virtual IAsyncResult BeginStopAdvise(string item, AsyncCallback callback, object state)
-                    {
-                        var ar = new AsyncResult(Context);
-                        ar.Callback = callback;
-                        ar.State = state;
+        /// <summary>
+        ///     This begins an asynchronous operation to terminate the advise loop for the specified item name.
+        /// </summary>
+        /// <param name="item">
+        ///     An item name that has an active advise loop.
+        /// </param>
+        /// <param name="callback">
+        ///     The delegate to invoke when this operation completes.
+        /// </param>
+        /// <param name="state">
+        ///     An application defined data object to associate with this operation.
+        /// </param>
+        /// <returns>
+        ///     An <c>IAsyncResult</c> object for this operation.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when item exceeds 255 characters.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when item is a null reference.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     This is thrown when the item is not being advised or when the client is not connected.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the asynchronous operation could not begin.
+        /// </exception>
+        public virtual IAsyncResult BeginStopAdvise(string item, AsyncCallback callback, object state)
+            {
+            var ar = new AsyncResult(Context);
+            ar.Callback = callback;
+            ar.State = state;
 
-                        ThreadStart method = delegate
+            ThreadStart method = delegate
                             {
                                 ar.DdemlAsyncResult = DdemlObject.BeginStopAdvise(item, OnStopAdviseComplete, ar);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
 
-                        return ar;
-                    }
+            return ar;
+            }
 
-                /// <summary>
-                ///     This throws any exception that occurred during the operation.
-                /// </summary>
-                /// <param name="asyncResult">
-                ///     The <c>IAsyncResult</c> object returned by a call to <c>BeginPoke</c>.
-                /// </param>
-                /// <exception cref="ArgumentException">
-                ///     This is thown when asyncResult is an invalid IAsyncResult.
-                /// </exception>
-                /// <exception cref="ArgumentNullException">
-                ///     This is thrown when asyncResult is a null reference.
-                /// </exception>
-                /// <exception cref="DdeException">
-                ///     This is thrown when the server does not terminate the advise loop.
-                /// </exception>
-                public virtual void EndStopAdvise(IAsyncResult asyncResult)
-                    {
-                        ThreadStart method = delegate
+        /// <summary>
+        ///     This throws any exception that occurred during the operation.
+        /// </summary>
+        /// <param name="asyncResult">
+        ///     The <c>IAsyncResult</c> object returned by a call to <c>BeginPoke</c>.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///     This is thown when asyncResult is an invalid IAsyncResult.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     This is thrown when asyncResult is a null reference.
+        /// </exception>
+        /// <exception cref="DdeException">
+        ///     This is thrown when the server does not terminate the advise loop.
+        /// </exception>
+        public virtual void EndStopAdvise(IAsyncResult asyncResult)
+            {
+            ThreadStart method = delegate
                             {
                                 if (asyncResult is AsyncResult)
                                     DdemlObject.EndStopAdvise(((AsyncResult) asyncResult).DdemlAsyncResult);
                                 else
                                     DdemlObject.EndStopAdvise(InvalidAsyncResult.Instance);
-                            };
+                                };
 
-                        try
-                            {
-                                Context.Invoke(method);
-                            }
-                        catch (DdemlException e)
-                            {
-                                throw new DdeException(e);
-                            }
-                        catch (ArgumentException e)
-                            {
-                                throw e;
-                            }
-                        catch (ObjectDisposedException e)
-                            {
-                                throw new ObjectDisposedException(GetType().ToString(), e);
-                            }
-                    }
+            try
+                {
+                Context.Invoke(method);
+                }
+            catch (DdemlException e)
+                {
+                throw new DdeException(e);
+                }
+            catch (ArgumentException e)
+                {
+                throw e;
+                }
+            catch (ObjectDisposedException e)
+                {
+                throw new ObjectDisposedException(GetType().ToString(), e);
+                }
+            }
 
-                private void OnExecuteComplete(IAsyncResult asyncResult)
-                    {
-                        var ar = (AsyncResult) asyncResult.AsyncState;
-                        if (ar.Callback != null)
-                            ar.Callback(ar);
-                    }
+        private void OnExecuteComplete(IAsyncResult asyncResult)
+            {
+            var ar = (AsyncResult) asyncResult.AsyncState;
+            if (ar.Callback != null)
+                ar.Callback(ar);
+            }
 
-                private void OnPokeComplete(IAsyncResult asyncResult)
-                    {
-                        var ar = (AsyncResult) asyncResult.AsyncState;
-                        if (ar.Callback != null)
-                            ar.Callback(ar);
-                    }
+        private void OnPokeComplete(IAsyncResult asyncResult)
+            {
+            var ar = (AsyncResult) asyncResult.AsyncState;
+            if (ar.Callback != null)
+                ar.Callback(ar);
+            }
 
-                private void OnRequestComplete(IAsyncResult asyncResult)
-                    {
-                        var ar = (AsyncResult) asyncResult.AsyncState;
-                        if (ar.Callback != null)
-                            ar.Callback(ar);
-                    }
+        private void OnRequestComplete(IAsyncResult asyncResult)
+            {
+            var ar = (AsyncResult) asyncResult.AsyncState;
+            if (ar.Callback != null)
+                ar.Callback(ar);
+            }
 
-                private void OnStartAdviseComplete(IAsyncResult asyncResult)
-                    {
-                        var ar = (AsyncResult) asyncResult.AsyncState;
-                        if (ar.Callback != null)
-                            ar.Callback(ar);
-                    }
+        private void OnStartAdviseComplete(IAsyncResult asyncResult)
+            {
+            var ar = (AsyncResult) asyncResult.AsyncState;
+            if (ar.Callback != null)
+                ar.Callback(ar);
+            }
 
-                private void OnStopAdviseComplete(IAsyncResult asyncResult)
-                    {
-                        var ar = (AsyncResult) asyncResult.AsyncState;
-                        if (ar.Callback != null)
-                            ar.Callback(ar);
-                    }
+        private void OnStopAdviseComplete(IAsyncResult asyncResult)
+            {
+            var ar = (AsyncResult) asyncResult.AsyncState;
+            if (ar.Callback != null)
+                ar.Callback(ar);
+            }
 
-                private void OnAdviseReceived(object sender, DdemlAdviseEventArgs internalArgs)
-                    {
-                        EventHandler<DdeAdviseEventArgs> copy;
+        private void OnAdviseReceived(object sender, DdemlAdviseEventArgs internalArgs)
+            {
+            EventHandler<DdeAdviseEventArgs> copy;
 
-                        // To make this thread-safe we need to hold a local copy of the reference to the invocation list.  This works because delegates are
-                        //immutable.
-                        lock (_LockObject)
-                            {
-                                copy = _AdviseEvent;
-                            }
+            // To make this thread-safe we need to hold a local copy of the reference to the invocation list.  This works because delegates are
+            //immutable.
+            lock (_LockObject)
+                {
+                copy = _AdviseEvent;
+                }
 
-                        if (copy != null)
-                            copy(this, new DdeAdviseEventArgs(internalArgs, Context.Encoding));
-                    }
+            if (copy != null)
+                copy(this, new DdeAdviseEventArgs(internalArgs, Context.Encoding));
+            }
 
-                private void OnDisconnected(object sender, DdemlDisconnectedEventArgs internalArgs)
-                    {
-                        EventHandler<DdeDisconnectedEventArgs> copy;
+        private void OnDisconnected(object sender, DdemlDisconnectedEventArgs internalArgs)
+            {
+            EventHandler<DdeDisconnectedEventArgs> copy;
 
-                        // To make this thread-safe we need to hold a local copy of the reference to the invocation list.  This works because delegates are
-                        //immutable.
-                        lock (_LockObject)
-                            {
-                                copy = _DisconnectedEvent;
-                            }
+            // To make this thread-safe we need to hold a local copy of the reference to the invocation list.  This works because delegates are
+            //immutable.
+            lock (_LockObject)
+                {
+                copy = _DisconnectedEvent;
+                }
 
-                        if (copy != null)
-                            copy(this, new DdeDisconnectedEventArgs(internalArgs));
-                    }
+            if (copy != null)
+                copy(this, new DdeDisconnectedEventArgs(internalArgs));
+            }
 
-                private void OnStateChange(object sender, EventArgs args)
-                    {
-                        lock (_LockObject)
-                            {
-                                _Handle = _DdemlObject.Handle;
-                                _IsConnected = _DdemlObject.IsConnected;
-                                _IsPaused = _DdemlObject.IsPaused;
-                                _Service = _DdemlObject.Service;
-                                _Topic = _DdemlObject.Topic;
-                            }
-                    }
+        private void OnStateChange(object sender, EventArgs args)
+            {
+            lock (_LockObject)
+                {
+                _Handle = _DdemlObject.Handle;
+                _IsConnected = _DdemlObject.IsConnected;
+                _IsPaused = _DdemlObject.IsPaused;
+                _Service = _DdemlObject.Service;
+                _Topic = _DdemlObject.Topic;
+                }
+            }
 
-                /// <threadsafety static="true" instance="false" />
-                private sealed class AsyncResult : IAsyncResult
-                    {
-                        private DdeContext _Context;
+        /// <threadsafety static="true" instance="false" />
+        private sealed class AsyncResult : IAsyncResult
+            {
+            private DdeContext _Context;
 
-                        public AsyncResult(DdeContext context)
-                            {
-                                _Context = context;
-                            }
+            public AsyncResult(DdeContext context)
+                {
+                _Context = context;
+                }
 
-                        public AsyncCallback Callback { get; set; }
+            public AsyncCallback Callback { get; set; }
 
-                        public object State { get; set; }
+            public object State { get; set; }
 
-                        public IAsyncResult DdemlAsyncResult { get; set; }
+            public IAsyncResult DdemlAsyncResult { get; set; }
 
-                        public object AsyncState => State;
+            public object AsyncState => State;
 
-                        public WaitHandle AsyncWaitHandle => DdemlAsyncResult.AsyncWaitHandle;
+            public WaitHandle AsyncWaitHandle => DdemlAsyncResult.AsyncWaitHandle;
 
-                        public bool CompletedSynchronously => DdemlAsyncResult.CompletedSynchronously;
+            public bool CompletedSynchronously => DdemlAsyncResult.CompletedSynchronously;
 
-                        public bool IsCompleted => DdemlAsyncResult.IsCompleted;
-                    } // class
-
-                /// <threadsafety static="true" instance="false" />
-                private sealed class InvalidAsyncResult : IAsyncResult
-                    {
-                        private InvalidAsyncResult()
-                            { }
-
-                        public static InvalidAsyncResult Instance { get; } = new InvalidAsyncResult();
-
-                        public object AsyncState => null;
-
-                        public bool CompletedSynchronously => false;
-
-                        public WaitHandle AsyncWaitHandle => null;
-
-                        public bool IsCompleted => false;
-                    } // class
+            public bool IsCompleted => DdemlAsyncResult.IsCompleted;
             } // class
+
+        /// <threadsafety static="true" instance="false" />
+        private sealed class InvalidAsyncResult : IAsyncResult
+            {
+            private InvalidAsyncResult()
+                { }
+
+            public static InvalidAsyncResult Instance { get; } = new InvalidAsyncResult();
+
+            public object AsyncState => null;
+
+            public bool CompletedSynchronously => false;
+
+            public WaitHandle AsyncWaitHandle => null;
+
+            public bool IsCompleted => false;
+            } // class
+        } // class
     } // namespace
