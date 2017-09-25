@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ASSIST_Extensions</name>
+    </assembly>
+    <members>
+        <member name="T:ASSIST_Extensions.CreateEventsLogger">
+            <summary>
+            Creates an event logger using the specified 
+            </summary>
+        </member>
+        <member name="M:ASSIST_Extensions.CreateEventsLogger.CreaterEventLogger(System.String,System.String)">
+            <summary>
+            Creates the event logger of Log name and Source datasource if the Log doesn't exist. Otherwise uses the exist event log with the same name.
+            If no log is specified, it uses the default Application Log.
+            </summary>
+            <param name="source">The source. This goes into the DataSource column</param>
+            <param name="log">The log. This is the name of the log the events are written to.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ASSIST_Extensions.CreateEventsLogger.GetEvents``1(System.String,System.Diagnostics.EventLogEntryType,System.Boolean)">
+            <summary>
+            Accepts an Event Log Name and log level. Returns all log entries for that Event Log and level
+            The default log (if none is specified) is the Application log and default log level is FailueAudit
+            </summary>
+            <param name="eventLogName">Name of the event log.</param>
+            <param name="logType">Type of the log.</param>
+            <param name="onlyEventsEqualTo"></param>
+            <returns>List<EvengLogEntry/> EventList</returns>
+        </member>
+    </members>
+</doc>
