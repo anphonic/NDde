@@ -1,7 +1,6 @@
 namespace NDde.Test
 {
     using System;
-    using System.Collections;
     using System.Text;
     using System.Timers;
     using NDde;
@@ -49,24 +48,22 @@ namespace NDde.Test
         }
 
         [Test]
-        [ExpectedException(typeof(ObjectDisposedException))]
         public void Test_Register_After_Dispose()
         {
             using (DdeServer server = new TestServer(ServiceName))
             {
                 server.Dispose();
-                server.Register();
+                Assert.Throws<ObjectDisposedException>(() => server.Register());
             }
         }
 
         [Test]
-        [ExpectedException(typeof(InvalidOperationException))]
         public void Test_Register_After_Register()
         {
             using (DdeServer server = new TestServer(ServiceName))
             {
                 server.Register();
-                server.Register();
+                Assert.Throws<InvalidOperationException>(() => server.Register());
             }
         }
 
@@ -86,31 +83,29 @@ namespace NDde.Test
                     }
                     catch (DdeException e)
                     {
-                        Assert.AreEqual(0x400A, e.Code);
+                        Assert.That(e.Code, Is.EqualTo(0x400A));
                     }
                 }
             }
         }
 
         [Test]
-        [ExpectedException(typeof(ObjectDisposedException))]
         public void Test_Unregister_After_Dispose()
         {
             using (DdeServer server = new TestServer(ServiceName))
             {
                 server.Register();
                 server.Dispose();
-                server.Unregister();
+                Assert.Throws<ObjectDisposedException>(() => server.Unregister());
             }
         }
 
         [Test]
-        [ExpectedException(typeof(InvalidOperationException))]
         public void Test_Unregister_Before_Register()
         {
             using (DdeServer server = new TestServer(ServiceName))
             {
-                server.Unregister();
+                Assert.Throws<InvalidOperationException>(() => server.Unregister());
             }
         }
 
@@ -124,7 +119,7 @@ namespace NDde.Test
                 {
                     client.Connect();
                     client.Execute(CommandText, Timeout);
-                    Assert.AreEqual(CommandText, server.Command);
+                    Assert.That(server.Command, Is.EqualTo(CommandText));
                 }
             }
         }
@@ -144,7 +139,7 @@ namespace NDde.Test
                     }
                     catch (DdeException e)
                     {
-                        Assert.AreEqual(0x4009, e.Code);
+                        Assert.That(e.Code, Is.EqualTo(0x4009));
                     }
                 }
             }
@@ -179,7 +174,7 @@ namespace NDde.Test
                     }
                     catch (DdeException e)
                     {
-                        Assert.AreEqual(0x4001, e.Code);
+                        Assert.That(e.Code, Is.EqualTo(0x4001));
                     }
                 }
             }
@@ -195,7 +190,7 @@ namespace NDde.Test
                 {
                     client.Connect();
                     client.Poke(ItemName, Encoding.ASCII.GetBytes(TestData), 1, Timeout);
-                    Assert.AreEqual(TestData, Encoding.ASCII.GetString(server.GetData(TopicName, ItemName, 1)));
+                    Assert.That(Encoding.ASCII.GetString(server.GetData(TopicName, ItemName, 1)), Is.EqualTo(TestData));
                 }
             }
         }
@@ -211,7 +206,7 @@ namespace NDde.Test
                 {
                     client.Connect();
                     byte[] data = client.Request(ItemName, 1, Timeout);
-                    Assert.AreEqual(TestData, Encoding.ASCII.GetString(data));
+                    Assert.That(Encoding.ASCII.GetString(data), Is.EqualTo(TestData));
                 }
             }
         }
@@ -221,7 +216,7 @@ namespace NDde.Test
         {
             using (DdeServer server = new TestServer(ServiceName))
             {
-                Assert.IsFalse(server.IsRegistered);
+                Assert.That(server.IsRegistered, Is.False);
             }
         }
 
@@ -231,7 +226,7 @@ namespace NDde.Test
             using (DdeServer server = new TestServer(ServiceName))
             {
                 server.Register();
-                Assert.IsTrue(server.IsRegistered);
+                Assert.That(server.IsRegistered, Is.True);
             }
         }
 
@@ -240,7 +235,7 @@ namespace NDde.Test
         {
             using (DdeServer server = new TestServer(ServiceName))
             {
-                Assert.AreEqual(ServiceName, server.Service);
+                Assert.That(server.Service, Is.EqualTo(ServiceName));
             }
         }
 

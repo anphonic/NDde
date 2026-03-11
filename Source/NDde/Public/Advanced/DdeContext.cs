@@ -15,7 +15,7 @@
  *     without limitation, warranties of merchantability or fitness for a particular purpose or any warranty of title or non-infringement.  Also,
  *     you must pass this disclaimer on whenever you distribute the Software or derivative works.
  *  4. That no contributor to the Software will be liable for any of those types of damages known as indirect, special, consequential, or incidental
- *     related to the Software or this license, to the maximum extent the law permits, no matter what legal theory it�s based on.  Also, you must
+ *     related to the Software or this license, to the maximum extent the law permits, no matter what legal theory it's based on.  Also, you must
  *     pass this limitation of liability on whenever you distribute the Software or derivative works.
  *  5. That if you sue anyone over patents that you think may apply to the Software for a person's use of the Software, your license to the Software
  *     ends automatically.
@@ -25,7 +25,7 @@
  *     software to you.
  *  8. That if you are an agency of the U.S. Government, (i) Software provided pursuant to a solicitation issued on or after December 1, 1995, is
  *     provided with the commercial license rights set forth in this license, and (ii) Software provided pursuant to a solicitation issued prior to
- *     December 1, 1995, is provided with �Restricted Rights� as set forth in FAR, 48 C.F.R. 52.227-14 (June 1987) or DFAR, 48 C.F.R. 252.227-7013 
+ *     December 1, 1995, is provided with "Restricted Rights" as set forth in FAR, 48 C.F.R. 52.227-14 (June 1987) or DFAR, 48 C.F.R. 252.227-7013 
  *     (Oct 1988), as applicable.
  *  9. That your rights under this License end automatically if you breach it in any way.
  * 10. That all rights not expressly granted to you in this license are reserved.
@@ -511,9 +511,9 @@ namespace NDde.Advanced
                             {
                                 Invoke(method);
                             }
-                        catch (ArgumentException e)
+                        catch (ArgumentException)
                             {
-                                throw e;
+                                throw;
                             }
                         catch (ObjectDisposedException e)
                             {
@@ -555,9 +555,9 @@ namespace NDde.Advanced
                             {
                                 Invoke(method);
                             }
-                        catch (ArgumentException e)
+                        catch (ArgumentException)
                             {
-                                throw e;
+                                throw;
                             }
                         catch (ObjectDisposedException e)
                             {

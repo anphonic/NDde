@@ -342,9 +342,9 @@ namespace NDde.Server
                             {
                                 throw new DdeException(e);
                             }
-                        catch (ArgumentException e)
+                        catch (ArgumentException)
                             {
-                                throw e;
+                                throw;
                             }
                         catch (ObjectDisposedException e)
                             {
@@ -386,9 +386,9 @@ namespace NDde.Server
                             {
                                 throw new DdeException(e);
                             }
-                        catch (ArgumentException e)
+                        catch (ArgumentException)
                             {
-                                throw e;
+                                throw;
                             }
                         catch (ObjectDisposedException e)
                             {
@@ -457,9 +457,9 @@ namespace NDde.Server
                             {
                                 throw new DdeException(e);
                             }
-                        catch (ArgumentException e)
+                        catch (ArgumentException)
                             {
-                                throw e;
+                                throw;
                             }
                         catch (ObjectDisposedException e)
                             {
@@ -525,9 +525,9 @@ namespace NDde.Server
                             {
                                 throw new DdeException(e);
                             }
-                        catch (ArgumentException e)
+                        catch (ArgumentException)
                             {
-                                throw e;
+                                throw;
                             }
                         catch (ObjectDisposedException e)
                             {

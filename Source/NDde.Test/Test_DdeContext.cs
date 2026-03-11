@@ -1,7 +1,7 @@
 namespace NDde.Test
 {
     using System;
-    using System.Collections;
+    using System.Collections.Generic;
     using NDde;
     using NDde.Advanced;
     using NDde.Client;
@@ -44,24 +44,22 @@ namespace NDde.Test
         }
 
         [Test]
-        [ExpectedException(typeof(ObjectDisposedException))]
         public void Test_Initialize_After_Dispose()
         {
             using (DdeContext context = new DdeContext())
             {
                 context.Dispose();
-                context.Initialize();
+                Assert.Throws<ObjectDisposedException>(() => context.Initialize());
             }
         }
 
         [Test]
-        [ExpectedException(typeof(InvalidOperationException))]
         public void Test_Initialize_After_Initialize()
         {
             using (DdeContext context = new DdeContext())
             {
                 context.Initialize();
-                context.Initialize();
+                Assert.Throws<InvalidOperationException>(() => context.Initialize());
             }
         }
 
@@ -70,7 +68,7 @@ namespace NDde.Test
         {
             using (DdeContext context = new DdeContext())
             {
-                Assert.IsFalse(context.IsInitialized);
+                Assert.That(context.IsInitialized, Is.False);
             }
         }
 
@@ -80,7 +78,7 @@ namespace NDde.Test
             using (DdeContext context = new DdeContext())
             {
                 context.Initialize();
-                Assert.IsTrue(context.IsInitialized);
+                Assert.That(context.IsInitialized, Is.True);
             }
         }
 
@@ -95,14 +93,13 @@ namespace NDde.Test
         }
 
         [Test]
-        [ExpectedException(typeof(ObjectDisposedException))]
         public void Test_AddTransactionFilter_After_Dispose()
         {
             using (DdeContext context = new DdeContext())
             {
                 IDdeTransactionFilter filter = new TransactionFilter();
                 context.Dispose();
-                context.AddTransactionFilter(filter);
+                Assert.Throws<ObjectDisposedException>(() => context.AddTransactionFilter(filter));
             }
         }
 
@@ -118,7 +115,6 @@ namespace NDde.Test
         }
 
         [Test]
-        [ExpectedException(typeof(ObjectDisposedException))]
         public void Test_RemoveTransactionFilter_After_Dispose()
         {
             using (DdeContext context = new DdeContext())
@@ -126,7 +122,7 @@ namespace NDde.Test
                 TransactionFilter filter = new TransactionFilter();
                 context.AddTransactionFilter(filter);
                 context.Dispose();
-                context.RemoveTransactionFilter(filter);
+                Assert.Throws<ObjectDisposedException>(() => context.RemoveTransactionFilter(filter));
             }
         }
 
@@ -142,7 +138,7 @@ namespace NDde.Test
                 {
                     server.Register();
                 }
-                Assert.IsTrue(filter.Received.WaitOne(Timeout, false));
+                Assert.That(filter.Received.WaitOne(Timeout), Is.True);
             }
         }
 
@@ -158,7 +154,7 @@ namespace NDde.Test
                 {
                     server.Register();
                 }
-                Assert.IsTrue(listener.Received.WaitOne(Timeout, false));
+                Assert.That(listener.Received.WaitOne(Timeout), Is.True);
             }
         }
 
@@ -175,7 +171,7 @@ namespace NDde.Test
                     server.Register();
                     server.Unregister();
                 }
-                Assert.IsTrue(listener.Received.WaitOne(Timeout, false));
+                Assert.That(listener.Received.WaitOne(Timeout), Is.True);
             }
         }
 
@@ -183,11 +179,11 @@ namespace NDde.Test
         private sealed class TransactionFilter : IDdeTransactionFilter
         {
             private System.Threading.ManualResetEvent _Received     = new System.Threading.ManualResetEvent(false);
-            private ArrayList                         _Transactions = new ArrayList();
+            private List<DdeTransaction>               _Transactions = new List<DdeTransaction>();
 
-            public IList Transactions
+            public IReadOnlyList<DdeTransaction> Transactions
             {
-                get { return ArrayList.ReadOnly(_Transactions); }
+                get { return _Transactions.AsReadOnly(); }
             }
 
             public System.Threading.WaitHandle Received
