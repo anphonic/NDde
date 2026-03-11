@@ -511,9 +511,9 @@ namespace NDde.Advanced
                             {
                                 Invoke(method);
                             }
-                        catch (ArgumentException e)
+                        catch (ArgumentException)
                             {
-                                throw e;
+                                throw;
                             }
                         catch (ObjectDisposedException e)
                             {
@@ -555,9 +555,9 @@ namespace NDde.Advanced
                             {
                                 Invoke(method);
                             }
-                        catch (ArgumentException e)
+                        catch (ArgumentException)
                             {
-                                throw e;
+                                throw;
                             }
                         catch (ObjectDisposedException e)
                             {
