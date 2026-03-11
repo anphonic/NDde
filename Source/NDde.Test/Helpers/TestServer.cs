@@ -1,7 +1,7 @@
 namespace NDde.Test
 {
     using System;
-    using System.Collections;
+    using System.Collections.Generic;
     using System.Timers;
     using NDde;
     using NDde.Advanced;
@@ -9,10 +9,10 @@ namespace NDde.Test
 
     internal class TestServer : TracingServer
     {
-        private Timer       _Timer        = new Timer();
-        private string      _Command      = "";
-        private IDictionary _Data         = new Hashtable();
-        private IDictionary _Conversation = new Hashtable();
+        private Timer                        _Timer        = new Timer();
+        private string                       _Command      = "";
+        private Dictionary<string, byte[]>   _Data         = new Dictionary<string, byte[]>();
+        private Dictionary<IntPtr, DdeConversation> _Conversation = new Dictionary<IntPtr, DdeConversation>();
 
         public TestServer(string service)
             : base(service)
@@ -43,7 +43,7 @@ namespace NDde.Test
         public byte[] GetData(string topic, string item, int format)
         {
             string key = topic + ":" + item + ":" + format.ToString();
-            return (byte[])_Data[key];
+            return _Data.TryGetValue(key, out byte[] value) ? value : null;
         }
 
         public void SetData(string topic, string item, int format, byte[] data)
@@ -182,9 +182,9 @@ namespace NDde.Test
         {
             base.OnRequest(conversation, item, format);
             string key = conversation.Topic + ":" + item + ":" + format.ToString();
-            if (_Data.Contains(key))
+            if (_Data.ContainsKey(key))
             {
-                return new RequestResult((byte[])_Data[key]);
+                return new RequestResult(_Data[key]);
             }
             return RequestResult.NotProcessed;
         }
@@ -193,9 +193,9 @@ namespace NDde.Test
         {
             base.OnAdvise(topic, item, format);
             string key = topic + ":" + item + ":" + format.ToString();
-            if (_Data.Contains(key))
+            if (_Data.ContainsKey(key))
             {
-                return (byte[])_Data[key];
+                return _Data[key];
             }
             return null;
         }
